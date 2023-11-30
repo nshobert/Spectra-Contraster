@@ -1,20 +1,19 @@
 # ASCE 7 Response Spectra Comparison Tool
 
 ## Overview
-This tool is designed for engineers and researchers to compare ASCE 7-22 response spectra. It enables users to input specific geographic coordinates (latitude and longitude) and select from various Site Classes (A, B, BC, C, CD, D, DE, E) to view and compare response spectra. The tool provides interactive visualizations, a simple map for location verification, and the ability to generate and download a 'maximum envelope' spectrum.
-
+This tool is designed for users to compare the ASCE 7-22 response spectra for a given average shear wave velocity, Vs100, that was measured or estimated by correlation. Users can input specific geographic coordinates (latitude and longitude) and select various other inputs and the tool will retrieve the spectral ordinates from the USGS. The tool provides interactive visualizations, a simple map for location verification, and the ability to download the spectra of interest.
 ## Features
 - **Data Scraping**: Automatically scrapes spectral ordinate data from the [USGS Seismic Design Web Services](https://earthquake.usgs.gov/ws/designmaps/) website.
-- **User Input**: Allows users to input latitude and longitude and select Site Classes, risk category, and other inputs.
+- **User Input**: Allows users to input latitude and longitude and risk category, and other inputs.
 - **Interactive Plots**: Visualize the spectral data for easy comparison.
 - **Map Integration**: Provides a geographic map to validate the selected location.
-- **Maximum Envelope Spectrum**: Generates a spectrum composed of the maximum values across selected spectra.
-- **Data Download**: Enables users to download the spectral ordinates of selected classes.
+- **Maximum Envelope Spectrum**: Generates a spectrum composed of the Vs100, 1.3*Vs100, and Vs100/1.3 as required for estimated shear wave velocity profiles. 
+- **Data Download**: Enables users to download the spectral ordinates of the spectra of interest.
 
 ## Usage
 Access the app with the URL below. Directions for its use are displayed there.
 
-**To use the app**: https://spectra-plotter.streamlit.app/
+**To use the app**: [Spectra Comparison Tool](link.com).
 
 ## Modify the Code
 
@@ -25,7 +24,7 @@ Access the app with the URL below. Directions for its use are displayed there.
 ### Setup
 1. Clone the repository:
    ```
-   git clone (https://github.com/nshobert/Spectra-Plotter.git)
+   git clone (url)
    ```
 2. Navigate to your project directory:
    ```
@@ -61,7 +60,7 @@ To confirm that your setup worked, run the app and submit the default settings.
 
 
 ### License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
+This will be a private repo, right? Need to figure out how to deploy on local server.
 
 ## Disclaimer
 ### From the USGS, the source of the data:
