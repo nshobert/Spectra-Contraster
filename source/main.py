@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import scraper
 import functions
 import ASCE
+import plotting
 
 # Title for app.
 st.header('ASCE 7-22 Response Spectra Plotter')
@@ -130,50 +131,8 @@ if user_input:
     # Plot the user's spectra.
     st.write('This plot compares the spectra for measured and estimated shear wave velocity profiles')
     fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=all_data[0]['Periods'],
-            y=all_data[0]['Ordinates'],
-            name=f"Site Class {data['Site Class']} if Vs100 measured"
-        )
-    )
-
-    # Make the composite spectrum
-    # Use the periods from first site class since all the same.
-    periods = all_data[0]['Periods'] if all_data else []
-
-    # Get max spectral acceleration at each period.
-    max_ords = [max(data['Ordinates'][i] for data in all_data) for i in range(len(periods))]
-    
-    # Add the composite spectrum to the plot.
-    fig.add_trace(
-        go.Scatter(
-            x=periods,
-            y=max_ords,
-            name='Composite Spectrum if Vs100 estimated',
-            line=dict(dash='dash')
-        )
-    )
-
-    # Add the composite spectrum to the dataframe.
-    my_df['Composite'] = max_ords
-
-
-    # Set x axis to log and add labels.
-    fig.update_xaxes(
-            type='log',
-            title='Period (s)'
-        )
-    
-    fig.update_yaxes(
-            title='Spectral Acceleration (g)'
-        )
-    
-    fig.update_layout(
-        title=f'Multiperiod Response Spectra for {title}',
-        hovermode='x unified'
-    )
-
+    fig, my_df = plotting.plot_spectra(fig, all_data, my_df, title)
+   
     # MAIN AREA: display spectra plot.
     st.plotly_chart(fig)
 
