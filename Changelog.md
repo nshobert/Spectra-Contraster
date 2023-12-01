@@ -15,3 +15,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - clone the SpectraPlotter repo here for new project.
+  
+### Changed
+- changed pipfile so that python_full_version = "3.11.5" instead of 3.11.6
