@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import scraper
 import functions
+import ASCE
 
 # Title for app.
 st.header('ASCE 7-22 Response Spectra Plotter')
@@ -45,27 +46,38 @@ with st.sidebar:
             index=2 #Default to III
             )
 
-        # SIDEBAR: site class inputs, up to 9.
-        site_classes = st.multiselect(
-            'Select one or more site classes:',
-            ['A','B','BC','C','CD', 'D', 'DE', 'E', 'Default'],
-            default=['C','CD','D']
-            )
-
         # SIDEBAR: name the location of the project.
-        title = st.text_input('Project Location', value="MyCity")
-
-        # SIDEBAR: option to create composite spectrum
-        composite = st.radio(
-            'Select to plot maximum composite spectrum:',
-            ['yes', 'no']
-            )
+        title = st.text_input('Project Location', value="MyProjectCity")
 
         # SIDEBAR: submit button.
         user_input = st.form_submit_button("SUBMIT")
 
 # Upon submit, get data and show plots and dataframes.
 if user_input:
+    # Get the user's Vs100 of interest and corresponding site class.
+    st.write('Select the average shear wave velocity in feet per second')
+    vs100 = st.slider('Select Vs100 (fps)', 500, 5000)
+    site_class_user = ASCE.asceTable(vs100)
+    st.write(f'This Vs100 correlates to Site Class {site_class_user}')
+    
+    # calculate 1.3* and /1.3
+    vs100_multiplied = vs100 * 1.3
+    st.write(f'DEBUG: vs100_multiplied is {vs100_multiplied}')   
+    vs100_divided = vs100 // 1.3
+    st.write(f'DEBUG: vs100_divided is {vs100_divided}')
+
+    # fetch site classes for the over/under
+    site_class_over = ASCE.asceTable(vs100_multiplied)
+    site_class_under = ASCE.asceTable(vs100_divided)
+    st.write(f'The site class associated with Vs100 * 1.3 is: {site_class_over}')
+    st.write(f'The site class associated with Vs100 / 1.3 is: {site_class_under}')
+
+    # Make list of site class, site class over, site class under
+    all_site_classes = [site_class_user, site_class_over, site_class_under]
+
+    # Get the set of unique site classes.
+    site_classes = functions.remove_duplicates(all_site_classes)
+
     # Construct the URLs
     urls = []
     for site_class in site_classes:
@@ -99,37 +111,36 @@ if user_input:
         ordinates = data['Ordinates']
         my_df[site_class] = ordinates
 
-    # Plot the retrieved spectra.
+    # Plot the user's spectra.
+    st.write('This plot compares the spectra for measured and estimated shear wave velocity profiles')
     fig = go.Figure()
-    for data in all_data:
-        fig.add_trace(
-            go.Scatter(
-                x=data['Periods'],
-                y=data['Ordinates'],
-                name=f"Site Class {data['Site Class']}"
-            )
+    fig.add_trace(
+        go.Scatter(
+            x=all_data[0]['Periods'],
+            y=all_data[0]['Ordinates'],
+            name=f"Site Class {data['Site Class']} if Vs100 measured"
         )
+    )
 
-    # Add composite spectrum if selected
-    if composite == 'yes':
-        # Use the periods from first site class since all the same.
-        periods = all_data[0]['Periods'] if all_data else []
+    # Add the composite spectrum
+    # Use the periods from first site class since all the same.
+    periods = all_data[0]['Periods'] if all_data else []
 
-        # Get max spectral acceleration at each period.
-        max_ords = [max(data['Ordinates'][i] for data in all_data) for i in range(len(periods))]
-        
-        # Add the composite spectrum to the plot.
-        fig.add_trace(
-            go.Scatter(
-                x=periods,
-                y=max_ords,
-                name='Composite Spectrum',
-                line=dict(dash='dash')
-            )
+    # Get max spectral acceleration at each period.
+    max_ords = [max(data['Ordinates'][i] for data in all_data) for i in range(len(periods))]
+    
+    # Add the composite spectrum to the plot.
+    fig.add_trace(
+        go.Scatter(
+            x=periods,
+            y=max_ords,
+            name='Composite Spectrum if Vs100 estimated',
+            line=dict(dash='dash')
         )
+    )
 
-        # Add the composite spectrum to the dataframe.
-        my_df['Composite'] = max_ords
+    # Add the composite spectrum to the dataframe.
+    my_df['Composite'] = max_ords
 
 
     # Set x axis to log and add labels.

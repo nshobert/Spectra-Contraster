@@ -12,6 +12,12 @@ def construct_url(latitude, longitude, riskCategory, siteClass, title):
     }
     return base_url + '&'.join(f"{key}={value}" for key, value in params.items())
 
+# Function to remove duplicate site classes from a list of all site classes.
+def remove_duplicates(lst):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in lst if not (x in seen or seen_add(x))]
+
 # Function to test construct_url function  
 def main():
     # Example inputs - replace with user inputs from Streamlit widgets
