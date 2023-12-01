@@ -9,6 +9,7 @@ import scraper
 import functions
 import ASCE
 import plotting
+import make_dataframe
 
 # Title for app.
 st.header('ASCE 7-22 Response Spectra Plotter')
@@ -118,16 +119,8 @@ if user_input:
                 'Ordinates': ordinates})
 
     # Make a human-reader friendly dataframe.
-    # Get periods from first site class since same for all.
-    periods = all_data[0]['Periods'] if all_data else []
-    my_df = pd.DataFrame({'Periods': periods})
-
-    # Add columns for each site class.
-    for data in all_data:
-        site_class = data['Site Class']
-        ordinates = data['Ordinates']
-        my_df[site_class] = ordinates
-
+    my_df = make_dataframe.make_dataframe(all_data)
+    
     # Plot the user's spectra.
     st.write('This plot compares the spectra for measured and estimated shear wave velocity profiles')
     fig = go.Figure()
