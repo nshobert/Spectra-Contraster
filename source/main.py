@@ -25,8 +25,8 @@ if 'title' not in st.session_state:
     st.session_state['title'] = None
 if 'user_input' not in st.session_state:
     st.session_state['user_input'] = None
-if 'vs100' not in st.session_state:
-    st.session_state['vs100'] = None
+if 'vs100_slider' not in st.session_state:
+    st.session_state['vs100_slider'] = None
 
 # Get initial user input
 if st.session_state['user_input'] is None:
@@ -74,28 +74,21 @@ if st.session_state['user_input'] is None:
             user_input = st.form_submit_button("SUBMIT")
 
             # Remember the user inputs that were submitted
-            st.session_state['user_input'] = user_input
-            st.session_state['lat']=lat
-            st.session_state['lon']=lon
-            st.session_state['risk_category'] = risk_category
-            st.session_state['title'] = title
+            if user_input:
+                st.session_state['user_input'] = user_input
+                st.session_state['lat']=lat
+                st.session_state['lon']=lon
+                st.session_state['risk_category'] = risk_category
+                st.session_state['title'] = title
 
 # Once there is a dictionary of user inputs, proceed with processing.
 # List the keys in the session_state dictionary
 keys = ['user_input', 'lat', 'lon', 'risk_category', 'title']
 
 if all(st.session_state.get(key) is not None for key in keys):
-    # If there is not a vs100 yet
-    if st.session_state['vs100'] is None:
-        # Get the user's Vs100 of interest and corresponding site class.
-        st.write('Select the average shear wave velocity in feet per second')
-        vs100 = st.slider('Select Vs100 (fps)', 500, 5000)
-        st.session_state['vs100'] = vs100
-
-    # Once there is a vs100 or a new vs100
-    if st.session_state['vs100'] is not None:
-        # Do all the processing
-        vs100 = st.session_state.get('vs100')
+    def do_all_the_processing():
+        # Get the value of the slider
+        vs100 = st.session_state.vs100_slider
         site_class_user = ASCE.asceTable(vs100)
         st.write(f'This Vs100 correlates to Site Class {site_class_user}')
 
@@ -158,6 +151,22 @@ if all(st.session_state.get(key) is not None for key in keys):
         url_list = [url for url, _ in urls]
         url_string = "\n".join(url_list)
         st.write('The data was gathered from the USGS website using these URLs:', url_string)
+
+    def print_the_slider_value():
+        st.write(f"the slider value is {st.session_state.vs100_slider}")
+
+    # Get the slider value
+    st.write('Select the average shear wave velocity in feet per second')
+    vs100 = st.slider(
+        'Select Vs100 (fps)',
+        500,
+        5000,
+        1500,
+        step=1,
+        key='vs100_slider',
+        #on_change=do_all_the_processing
+        on_change=print_the_slider_value()
+        )
 
 # MAIN AREA: show a disclaimer.
 st.write('This tool was developed to aid exploratory analysis of projects.' +
