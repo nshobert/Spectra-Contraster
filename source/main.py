@@ -12,6 +12,16 @@ import ASCE
 # Title for app.
 st.header('ASCE 7-22 Response Spectra Plotter')
 
+# Set a session state.
+if 'lat' not in st.session_state:
+    st.session_state['lat'] = None
+if 'lon' not in st.session_state:
+    st.session_state['lon'] = None
+if 'risk_category' not in st.session_state:
+    st.session_state['risk_category'] = None
+if 'title' not in st.session_state:
+    st.session_state['title'] = None
+
 # User input location, confirm on map
 with st.sidebar:
     # SIDEBAR: Tell user to start here.
@@ -32,7 +42,7 @@ with st.sidebar:
                 'lat': [lat_float],
                 'lon': [lon_float]
                 })
-            st.map(data=loc, zoom=9)
+            st.map(data=loc, zoom=8)
         except ValueError:
             st.error("Please enter valid latitude and longitude values.")
 
@@ -54,12 +64,18 @@ with st.sidebar:
 
 # Upon submit, get data and show plots and dataframes.
 if user_input:
+    # Preserve the user input for the session.
+    st.session_state['lat']=lat
+    st.session_state['lon']=lon
+    st.session_state['risk_category'] = risk_category
+    st.session_state['title'] = title
+
     # Get the user's Vs100 of interest and corresponding site class.
     st.write('Select the average shear wave velocity in feet per second')
     vs100 = st.slider('Select Vs100 (fps)', 500, 5000)
     site_class_user = ASCE.asceTable(vs100)
     st.write(f'This Vs100 correlates to Site Class {site_class_user}')
-    
+
     # calculate 1.3* and /1.3
     vs100_multiplied = vs100 * 1.3
     st.write(f'DEBUG: vs100_multiplied is {vs100_multiplied}')   
@@ -122,7 +138,7 @@ if user_input:
         )
     )
 
-    # Add the composite spectrum
+    # Make the composite spectrum
     # Use the periods from first site class since all the same.
     periods = all_data[0]['Periods'] if all_data else []
 
