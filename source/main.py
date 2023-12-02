@@ -90,19 +90,17 @@ if all(st.session_state.get(key) is not None for key in keys):
         # Get the value of the slider
         vs100 = st.session_state.vs100_slider
         site_class_user = ASCE.asceTable(vs100)
-        st.write(f'This Vs100 correlates to Site Class {site_class_user}')
+        st.write(f"The selected Vs100 = {vs100}, Site Class {site_class_user}")
 
         # calculate 1.3* and /1.3
-        vs100_multiplied = vs100 * 1.3
-        st.write(f'DEBUG: vs100_multiplied is {vs100_multiplied}')   
-        vs100_divided = vs100 // 1.3
-        st.write(f'DEBUG: vs100_divided is {vs100_divided}')
+        vs100_multiplied = round(vs100 * 1.3)
+        vs100_divided = round(vs100 // 1.3)
 
         # fetch site classes for the over/under
         site_class_over = ASCE.asceTable(vs100_multiplied)
         site_class_under = ASCE.asceTable(vs100_divided)
-        st.write(f'The site class associated with Vs100 * 1.3 is: {site_class_over}')
-        st.write(f'The site class associated with Vs100 / 1.3 is: {site_class_under}')
+        st.write(f'Vs100 * 1.3 is = {vs100_multiplied}, Site Class {site_class_over}')
+        st.write(f'Vs100 / 1.3 is = {vs100_divided}, Site Class {site_class_under}')
 
         # Make list of site class, site class over, site class under
         all_site_classes = [site_class_user, site_class_over, site_class_under]
@@ -114,11 +112,11 @@ if all(st.session_state.get(key) is not None for key in keys):
         urls = []
         for site_class in site_classes:
             url = functions.construct_url(
-                lat,
-                lon,
-                risk_category,
+                st.session_state.lat,
+                st.session_state.lon,
+                st.session_state.risk_category,
                 site_class,
-                title
+                st.session_state.title
             )
             urls.append((url, site_class))
 
@@ -136,9 +134,8 @@ if all(st.session_state.get(key) is not None for key in keys):
         my_df = make_dataframe.make_dataframe(all_data)
         
         # Plot the user's spectra.
-        st.write('This plot compares the spectra for measured and estimated shear wave velocity profiles')
         fig = go.Figure()
-        fig, my_df = plotting.plot_spectra(fig, all_data, my_df, title)
+        fig, my_df = plotting.plot_spectra(fig, all_data, my_df, st.session_state.title)
     
         # MAIN AREA: display spectra plot.
         st.plotly_chart(fig)
@@ -152,20 +149,16 @@ if all(st.session_state.get(key) is not None for key in keys):
         url_string = "\n".join(url_list)
         st.write('The data was gathered from the USGS website using these URLs:', url_string)
 
-    def print_the_slider_value():
-        st.write(f"the slider value is {st.session_state.vs100_slider}")
-
     # Get the slider value
     st.write('Select the average shear wave velocity in feet per second')
     vs100 = st.slider(
         'Select Vs100 (fps)',
-        500,
+        1,
         5000,
         1500,
         step=1,
         key='vs100_slider',
-        #on_change=do_all_the_processing
-        on_change=print_the_slider_value()
+        on_change=do_all_the_processing
         )
 
 # MAIN AREA: show a disclaimer.
