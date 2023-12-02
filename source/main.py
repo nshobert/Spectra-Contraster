@@ -16,13 +16,13 @@ st.header('ASCE 7-22 Response Spectra Plotter')
 
 # Set a session state.
 if 'lat' not in st.session_state:
-    st.session_state['lat'] = None
+    st.session_state['lat'] = 47.5678
 if 'lon' not in st.session_state:
-    st.session_state['lon'] = None
+    st.session_state['lon'] = -122.0123
 if 'risk_category' not in st.session_state:
-    st.session_state['risk_category'] = None
+    st.session_state['risk_category'] = 'III'
 if 'title' not in st.session_state:
-    st.session_state['title'] = None
+    st.session_state['title'] = 'MyProjectCity'
 if 'user_input' not in st.session_state:
     st.session_state['user_input'] = None
 if 'vs100_slider' not in st.session_state:
@@ -33,53 +33,55 @@ if st.session_state['user_input'] is None:
     # Add a welcome message and instructions
     st.write('Please submit required data in sidebar to the left.')
 
-    # User input location, confirm on map
-    with st.sidebar:
-        # SIDEBAR: Tell user to start here.
-        st.header('Start by Entering Options Here')
+# User input location, confirm on map
+with st.sidebar:
+    st.header('Start by Entering Options Here')
 
-        # SIDEBAR: latitude and longitude inputs.
-        lat = st.text_input('Enter latitude', value=47.56)
-        lon = st.text_input('Enter longitude', value=-122.01)
+    # SIDEBAR: get latitude and longitude if none, or show defaults.
+    st.session_state['lat'] = st.text_input(
+        'Enter latitude',
+        value=st.session_state['lat']
+    )
+    st.session_state['lon'] = st.text_input(
+        'Enter longitude',
+        value=st.session_state['lon']
+    )
 
-        # SIDEBAR: submit button for lat, lon
-        check_location = st.button('Check Location')
+    # SIDEBAR: submit button for lat, lon
+    check_location = st.button('Check Location')
 
-        if check_location and lat and lon:
-            try:
-                lat_float = float(lat)
-                lon_float = float(lon)
-                loc = pd.DataFrame({
-                    'lat': [lat_float],
-                    'lon': [lon_float]
-                    })
-                st.map(data=loc, zoom=8)
-            except ValueError:
-                st.error("Please enter valid latitude and longitude values.")
+    if check_location:
+        try:
+            lat_float = float(st.session_state['lat'])
+            lon_float = float(st.session_state['lon'])
+            loc = pd.DataFrame({'lat': [lat_float], 'lon': [lon_float]})
+            st.map(data=loc, zoom=8)
+        except ValueError:
+            st.error("Please enter valid latitude and longitude values.")
 
-        # SIDEBAR: use a form to get user inputs
-        st.header('After confirming location, select spectrum options')
-        with st.form('user_inputs'):
-            # SIDEBAR: input risk category, only 1.
-            risk_category = st.radio(
-                'Select risk category',
-                ['I', 'II', 'III', 'IV'],
-                index=2 #Default to III
-                )
+    # SIDEBAR: use a form to get user inputs
+    st.header('After confirming location, select spectrum options')
+    with st.form('user_inputs'):
+        # SIDEBAR: input risk category, only 1.
+        risk_categories = ['I', 'II', 'III', 'IV']
+        st.session_state['risk_category'] = st.radio(
+            'Select risk category',
+            risk_categories,
+            index=risk_categories.index(st.session_state['risk_category'])
+        )
+        
+        # SIDEBAR: name the location of the project.
+        st.session_state['title'] = st.text_input(
+            'Project Location',
+            value= st.session_state['title']
+        )
 
-            # SIDEBAR: name the location of the project.
-            title = st.text_input('Project Location', value="MyProjectCity")
+        # SIDEBAR: submit button
+        user_input = st.form_submit_button("SUBMIT")
 
-            # SIDEBAR: submit button
-            user_input = st.form_submit_button("SUBMIT")
-
-            # Remember the user inputs that were submitted
-            if user_input:
-                st.session_state['user_input'] = user_input
-                st.session_state['lat']=lat
-                st.session_state['lon']=lon
-                st.session_state['risk_category'] = risk_category
-                st.session_state['title'] = title
+        # Remember the user inputs that were submitted
+        if user_input:
+            st.session_state['user_input'] = True
 
 # Once there is a dictionary of user inputs, proceed with processing.
 # List the keys in the session_state dictionary
