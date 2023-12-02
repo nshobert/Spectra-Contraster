@@ -11,8 +11,89 @@ import ASCE
 import plotting
 import make_dataframe
 
+# Define a function to show plot, dataframe, and URLs
+def do_all_the_processing():
+    # Get the value of the slider
+    vs100 = st.session_state.vs100_slider
+    site_class_user = ASCE.asceTable(vs100)
+    st.write(f"The selected Vs100 = {vs100}, Site Class {site_class_user}")
+
+    # calculate 1.3* and /1.3
+    vs100_multiplied = round(vs100 * 1.3)
+    vs100_divided = round(vs100 // 1.3)
+
+    # fetch site classes for the over/under
+    site_class_over = ASCE.asceTable(vs100_multiplied)
+    site_class_under = ASCE.asceTable(vs100_divided)
+    st.write(f'Vs100 * 1.3 is = {vs100_multiplied}, Site Class {site_class_over}')
+    st.write(f'Vs100 / 1.3 is = {vs100_divided}, Site Class {site_class_under}')
+
+    # Make list of site class, site class over, site class under
+    all_site_classes = [site_class_user, site_class_over, site_class_under]
+
+    # Get the set of unique site classes.
+    site_classes = functions.remove_duplicates(all_site_classes)
+
+    # Construct the URLs
+    urls = []
+    for site_class in site_classes:
+        url = functions.construct_url(
+            st.session_state.lat,
+            st.session_state.lon,
+            st.session_state.risk_category,
+            site_class,
+            st.session_state.title
+        )
+        urls.append((url, site_class))
+
+    # When URLs are ready, scrape data
+    all_data = []
+    for url, site_class in urls:
+        periods, ordinates = scraper.scrape_data(url)
+        if periods and ordinates:
+            all_data.append({
+                'Site Class': site_class,
+                'Periods': periods,
+                'Ordinates': ordinates})
+
+    # Make a human-reader friendly dataframe.
+    my_df = make_dataframe.make_dataframe(all_data)
+    
+    # Plot the user's spectra.
+    fig = go.Figure()
+    fig, my_df = plotting.plot_spectra(fig, all_data, my_df, st.session_state.title)
+
+    # MAIN AREA: display spectra plot.
+    st.plotly_chart(fig)
+
+    # MAIN AREA: display datarame of spectral ordinates.
+    st.write('The dataframe contains the spectral ordinates of the plotted data')
+    st.dataframe(my_df)
+
+    # MAIN AREA: write out URLs and data source.
+    url_list = [url for url, _ in urls]
+    url_string = "\n".join(url_list)
+    st.write('The data was gathered from the USGS website using these URLs:', url_string)
+
 # Title for app.
 st.header('ASCE 7-22 Response Spectra Plotter')
+
+# Check if user has submitted initial input.
+if st.session_state.get('user_input'):
+    # Display the slider and update it's value in session state.
+    vs100_slider = st.slider(
+        'Select Vs100 (fps)',
+        1, 5000,
+        value=st.session_state.get('vs100_slider', 1500), # Use default 1500 if none
+        step=1,
+        key='vs100_slider'
+    )
+
+    if vs100_slider != st.session_state.get('vs100_slider', 1500):
+        st.session_state['vs100_slider'] = vs100_slider
+        
+    # when the slider is changed,
+    do_all_the_processing()
 
 # Set a session state.
 if 'lat' not in st.session_state:
@@ -25,8 +106,6 @@ if 'title' not in st.session_state:
     st.session_state['title'] = 'MyProjectCity'
 if 'user_input' not in st.session_state:
     st.session_state['user_input'] = None
-if 'vs100_slider' not in st.session_state:
-    st.session_state['vs100_slider'] = None
 
 # Get initial user input
 if st.session_state['user_input'] is None:
@@ -82,86 +161,6 @@ with st.sidebar:
         # Remember the user inputs that were submitted
         if user_input:
             st.session_state['user_input'] = True
-
-# Once there is a dictionary of user inputs, proceed with processing.
-# List the keys in the session_state dictionary
-keys = ['user_input', 'lat', 'lon', 'risk_category', 'title']
-
-if all(st.session_state.get(key) is not None for key in keys):
-    def do_all_the_processing():
-        # Get the value of the slider
-        vs100 = st.session_state.vs100_slider
-        site_class_user = ASCE.asceTable(vs100)
-        st.write(f"The selected Vs100 = {vs100}, Site Class {site_class_user}")
-
-        # calculate 1.3* and /1.3
-        vs100_multiplied = round(vs100 * 1.3)
-        vs100_divided = round(vs100 // 1.3)
-
-        # fetch site classes for the over/under
-        site_class_over = ASCE.asceTable(vs100_multiplied)
-        site_class_under = ASCE.asceTable(vs100_divided)
-        st.write(f'Vs100 * 1.3 is = {vs100_multiplied}, Site Class {site_class_over}')
-        st.write(f'Vs100 / 1.3 is = {vs100_divided}, Site Class {site_class_under}')
-
-        # Make list of site class, site class over, site class under
-        all_site_classes = [site_class_user, site_class_over, site_class_under]
-
-        # Get the set of unique site classes.
-        site_classes = functions.remove_duplicates(all_site_classes)
-
-        # Construct the URLs
-        urls = []
-        for site_class in site_classes:
-            url = functions.construct_url(
-                st.session_state.lat,
-                st.session_state.lon,
-                st.session_state.risk_category,
-                site_class,
-                st.session_state.title
-            )
-            urls.append((url, site_class))
-
-        # When URLs are ready, scrape data
-        all_data = []
-        for url, site_class in urls:
-            periods, ordinates = scraper.scrape_data(url)
-            if periods and ordinates:
-                all_data.append({
-                    'Site Class': site_class,
-                    'Periods': periods,
-                    'Ordinates': ordinates})
-
-        # Make a human-reader friendly dataframe.
-        my_df = make_dataframe.make_dataframe(all_data)
-        
-        # Plot the user's spectra.
-        fig = go.Figure()
-        fig, my_df = plotting.plot_spectra(fig, all_data, my_df, st.session_state.title)
-    
-        # MAIN AREA: display spectra plot.
-        st.plotly_chart(fig)
-
-        # MAIN AREA: display datarame of spectral ordinates.
-        st.write('The dataframe contains the spectral ordinates of the plotted data')
-        st.dataframe(my_df)
-
-        # MAIN AREA: write out URLs and data source.
-        url_list = [url for url, _ in urls]
-        url_string = "\n".join(url_list)
-        st.write('The data was gathered from the USGS website using these URLs:', url_string)
-
-    # Get the slider value
-    st.write('Select the average shear wave velocity in feet per second')
-    vs100 = st.slider(
-        'Select Vs100 (fps)',
-        1,
-        5000,
-        1500,
-        step=1,
-        key='vs100_slider',
-        on_change=do_all_the_processing
-        )
 
 # MAIN AREA: show a disclaimer.
 st.write('This tool was developed to aid exploratory analysis of projects.' +
