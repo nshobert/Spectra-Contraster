@@ -11,6 +11,9 @@ __pycache__/
 # data 
 data_intermediate/
 
+# password to app
+.streamlit/secrets.toml
+
 # random files
 blog.md
 scratch.ipynb

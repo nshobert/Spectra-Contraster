@@ -11,6 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - TODO: add some error handling, like for outside of US and there's no plot data.
 - TODO: refactor code. Maybe ChatGPT can help?
 
+## 2023 Dec 11
+
+### Added
+- one global password to app
+
+
 ## 2023 Nov 11
 
 ### Added
